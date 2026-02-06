@@ -369,8 +369,59 @@ function update(){
 prev.onclick=()=>{index=Math.max(0,index-1);update()};
 next.onclick=()=>{index++;update()};
 
-setInterval(()=>{index++;update()},3500);
+let autoScroll = setInterval(nextSlide, 3500);
+
+function nextSlide(){
+  index++;
+  update();
+}
+
+carousel.addEventListener("touchstart", () => {
+  clearInterval(autoScroll);
+});
+
+carousel.addEventListener("touchend", () => {
+  autoScroll = setInterval(nextSlide, 3500);
+});
 </script>
+<script>
+/* ===== MOBILE SWIPE SUPPORT ===== */
+let startX = 0;
+let isSwiping = false;
+
+const carousel = document.getElementById("carousel");
+
+carousel.addEventListener("touchstart", (e) => {
+  startX = e.touches[0].clientX;
+  isSwiping = true;
+}, { passive: true });
+
+carousel.addEventListener("touchmove", (e) => {
+  if (!isSwiping) return;
+}, { passive: true });
+
+carousel.addEventListener("touchend", (e) => {
+  if (!isSwiping) return;
+
+  const endX = e.changedTouches[0].clientX;
+  const diff = startX - endX;
+
+  const swipeThreshold = 50; // px
+
+  if (diff > swipeThreshold) {
+    // swipe left → next
+    index++;
+    update();
+  } else if (diff < -swipeThreshold) {
+    // swipe right → prev
+    index = Math.max(0, index - 1);
+    update();
+  }
+
+  isSwiping = false;
+});
+</script>
+
 
 </body>
 </html>
