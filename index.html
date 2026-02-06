@@ -363,26 +363,75 @@ function slideWidth(){
 }
 
 function update(){
-  track.style.transform=`translateX(${-index*slideWidth()}px)`;
+  const slideW = slideWidth();
+  const carouselWidth = document.getElementById("carousel").offsetWidth;
+  const visibleSlides = Math.floor(carouselWidth / slideW);
+
+  const maxIndex = track.children.length - visibleSlides;
+
+  //  HARD STOP at edges
+  index = Math.max(0, Math.min(index, maxIndex));
+
+  track.style.transform = `translateX(${-index * slideW}px)`;
+
+  // Optional: disable buttons visually
+  prev.disabled = index === 0;
+  next.disabled = index === maxIndex;
 }
 
-prev.onclick=()=>{index=Math.max(0,index-1);update()};
-next.onclick=()=>{index++;update()};
+
+prev.onclick = () => {
+  index--;
+  update();
+};
+
+next.onclick = () => {
+  index++;
+  update();
+};
+
 
 let autoScroll = setInterval(nextSlide, 3500);
 
 function nextSlide(){
   index++;
   update();
+
+  //  stop auto-scroll at the end
+  const slideW = slideWidth();
+  const carouselWidth = document.getElementById("carousel").offsetWidth;
+  const visibleSlides = Math.floor(carouselWidth / slideW);
+  const maxIndex = track.children.length - visibleSlides;
+
+  if (index >= maxIndex) {
+    clearInterval(autoScroll);
+  }
 }
+
 
 carousel.addEventListener("touchstart", () => {
   clearInterval(autoScroll);
 });
 
-carousel.addEventListener("touchend", () => {
-  autoScroll = setInterval(nextSlide, 3500);
+carousel.addEventListener("touchend", (e) => {
+  if (!isSwiping) return;
+
+  const endX = e.changedTouches[0].clientX;
+  const diff = startX - endX;
+  const swipeThreshold = 50;
+
+  if (diff > swipeThreshold) {
+    // swipe left → next
+    index++;
+  } else if (diff < -swipeThreshold) {
+    // swipe right → prev
+    index--;
+  }
+
+  update();
+  isSwiping = false;
 });
+
 </script>
 <script>
 /* ===== MOBILE SWIPE SUPPORT ===== */
